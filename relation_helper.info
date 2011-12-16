@@ -1,0 +1,10 @@
+name = Relation Helper
+description = Bridges between Work, Agent entities etc. and the relation module.
+package = DBO
+version = 7.x-dev
+core = 7.x
+
+dependencies[] = relation
+
+files[] = relation_helper.module
+files[] = relation_helper.install

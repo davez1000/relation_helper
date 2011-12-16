@@ -1,0 +1,43 @@
+<?php
+
+/**
+ * Bridges between the entity controller and the relation module.
+ * Returns a list of relation entity_ids, index, and the full entity from the relation endpoints, so they can be passed onto the entity pages.
+ * 
+ * @param $entity_id
+ *   The ID of the entity
+ * @return
+ *   A list of entity ID's related to the current entity you are viewing
+ * 
+ */
+function relation_helper_get_endpoints($entity_id) {
+  $endpoints_entity_ids = array();
+  if (db_table_exists('field_data_endpoints')) {
+    $relations = db_select('field_data_endpoints', 'fde')
+      ->fields('fde', array('entity_id'))
+      ->condition('endpoints_entity_id', $entity_id, '=')
+      ->execute()
+      ->fetchAll();
+
+    if (!empty($relations)) {
+      $rids = array();
+      foreach($relations as $reid) {
+        $rids[] = $reid->entity_id;
+      }
+
+      $relation_load = entity_load('relation', $rids, array(), FALSE);
+      $endpoints_entity_ids = array();
+      foreach ($relation_load as $relation) {
+        if (isset($relation->endpoints['und'][0])) {
+          foreach($relation->endpoints['und'] as $endpoint) {
+            if ($endpoint['entity_id'] != $entity_id) {
+              $endpoints_entity_ids[$endpoint['entity_id']] = $endpoint;
+              $endpoints_entity_ids[$endpoint['entity_id']]['entity'] = entity_load($endpoint['entity_type'], array($endpoint['entity_id']), array(), FALSE);
+            }
+          }
+        }
+      }
+    }
+  }
+  return $endpoints_entity_ids;
+}
